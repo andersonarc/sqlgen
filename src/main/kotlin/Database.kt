@@ -1,12 +1,13 @@
 import java.sql.DriverManager
+import java.sql.Statement
 
 class Database(url: String) {
     private val connection = DriverManager.getConnection(url)
 
-    private fun executeSQL(string: String) {
-        connection.createStatement().use {
-            it.execute(string)
-        }
+    fun executeSQL(string: String): Statement {
+        val statement = connection.createStatement()
+        statement.execute(string)
+        return statement
     }
 
     private fun classToSQLType(clazz: Class<*>): String {
@@ -27,7 +28,8 @@ class Database(url: String) {
     }
 
     fun createTable(clazz: Class<*>) {
-        val sql = clazz.declaredFields.joinToString(", ", "CREATE TABLE ${clazz.name} (", ")") {
+        val sql = clazz.declaredFields.joinToString(", ",
+            "CREATE TABLE ${clazz.simpleName} (", ")") {
             it.name + ' ' + it.type + ' ' + classToSQLType(it.type)
         }
         println(sql)
