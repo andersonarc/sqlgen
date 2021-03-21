@@ -12,5 +12,6 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation("org.xerial", "sqlite-jdbc", "3.7.2")
     testImplementation("junit", "junit", "4.12")
 }
