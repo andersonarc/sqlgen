@@ -1,3 +1,5 @@
+@file:Suppress("SpellCheckingInspection")
+
 plugins {
     java
     kotlin("jvm") version "1.4.31"
@@ -11,7 +13,7 @@ repositories {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
+    implementation(kotlin("stdlib-jdk8"))
     implementation("org.xerial", "sqlite-jdbc", "3.7.2")
     testImplementation("junit", "junit", "4.12")
 }
