@@ -28,30 +28,36 @@ class TestDatabaseCreation {
             var x = 5
         }
 
+        val values = intArrayOf(1, 2)
+
         db.createTable(
             TestInt::class.java
         )
 
-        db.executeSQL(
-            "INSERT INTO TestInt VALUES (1)"
-        )
-
-        db.executeSQL(
-            "INSERT INTO TestInt VALUES (2)"
-        )
+        for (value in values) {
+            db.executeSQL(
+                "INSERT INTO TestInt VALUES ($value)"
+            )
+        }
 
         val stmt = db.executeSQL(
-            "SELECT count(*) FROM TestInt"
+            "SELECT * FROM TestInt"
         )
 
         val set = stmt.resultSet
+        var count = 0
+        while (set.next()) {
+            assertEquals(values[count], set.getInt(1))
+            count++
+        }
+        assertEquals(2, count)
 
-        set.first()
-        val value = set.getInt(0)
-        assertEquals(value, 2)
+        val stmt2 = db.executeSQL(
+            "SELECT count(*) FROM TestInt"
+        )
 
-        set.last()
-        assertEquals(set.row, 1)
+        val set2 = stmt2.resultSet
+        assertEquals(2, set2.getInt(1))
     }
 
 }

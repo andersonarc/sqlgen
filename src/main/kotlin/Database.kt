@@ -1,11 +1,12 @@
 import java.sql.DriverManager
+import java.sql.ResultSet
 import java.sql.Statement
 
 class Database(url: String) {
     private val connection = DriverManager.getConnection(url)
 
     fun executeSQL(string: String): Statement {
-        val statement = connection.createStatement()
+        val statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
         statement.execute(string)
         return statement
     }
@@ -28,9 +29,9 @@ class Database(url: String) {
     }
 
     fun createTable(clazz: Class<*>) {
-        val sql = clazz.declaredFields.joinToString(", ",
+        val sql = clazz.declaredFields.joinToString(", \n",
             "CREATE TABLE ${clazz.simpleName} (", ")") {
-            it.name + ' ' + it.type + ' ' + classToSQLType(it.type)
+            it.name + ' ' + classToSQLType(it.type)
         }
         println(sql)
         executeSQL(sql)
