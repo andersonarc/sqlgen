@@ -3,6 +3,7 @@
 gradle
 gradlew
 gradlew.bat
+test.db
 
 build
 out

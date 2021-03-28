@@ -1,27 +1,9 @@
-import junit.framework.Assert.assertEquals
-import org.junit.Before
+package com.github.andersonarc.sqlgen.test
+
+import org.junit.Assert.assertEquals
 import org.junit.Test
-import java.nio.file.Files
-import java.nio.file.Paths
-import java.sql.DriverManager
-import javax.xml.crypto.Data
 
-val testDbPath = Paths.get("test.db").toAbsolutePath().toString()
-val testDbUrl = "jdbc:sqlite:$testDbPath"
-
-class TestDatabaseCreation {
-    lateinit var db: Database
-
-    init {
-        DriverManager.registerDriver(org.sqlite.JDBC())
-    }
-
-    @Before
-    fun deleteDb() {
-        Files.deleteIfExists(Paths.get(testDbPath))
-        db = Database(testDbUrl)
-    }
-
+class TestDatabaseCreation: DatabaseTest() {
     @Test
     fun testInt() {
         class TestInt {
