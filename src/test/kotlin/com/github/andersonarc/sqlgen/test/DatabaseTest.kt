@@ -6,6 +6,7 @@ import org.junit.Before
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.sql.DriverManager
+import java.sql.ResultSet
 
 abstract class DatabaseTest {
     private val databasePath = Paths.get("test.db").toAbsolutePath()
@@ -25,5 +26,27 @@ abstract class DatabaseTest {
     fun deleteOldDatabase() {
         db.closeConnection()
         Files.deleteIfExists(databasePath)
+    }
+
+    protected fun forEachTableRow(tableName: String, block: (ResultSet) -> Unit) {
+        val stmt = db.executeSQL(
+            "SELECT * FROM $tableName"
+        )
+        val set = stmt.resultSet
+        while (set.next()) {
+            block(set)
+        }
+    }
+
+    protected fun forEachTableRowIndexed(tableName: String, block: (ResultSet, Int) -> Unit) {
+        val stmt = db.executeSQL(
+            "SELECT * FROM $tableName"
+        )
+        val set = stmt.resultSet
+        var index = 0
+        while (set.next()) {
+            block(set, index)
+            index++
+        }
     }
 }

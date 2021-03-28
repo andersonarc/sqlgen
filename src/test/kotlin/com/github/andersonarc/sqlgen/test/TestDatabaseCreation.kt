@@ -1,16 +1,19 @@
 package com.github.andersonarc.sqlgen.test
 
+import com.github.andersonarc.sqlgen.serialization.SQLSerializer
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
 class TestDatabaseCreation: DatabaseTest() {
     @Test
-    fun testInt() {
+    fun testCreateSingleIntTable() {
         class TestInt {
-            var x = 5
+            val x = 5
         }
 
         val values = intArrayOf(1, 2)
+
+        val tableName = SQLSerializer.javaClassToTableName(TestInt::class.java)
 
         db.createTable(
             TestInt::class.java
@@ -18,28 +21,20 @@ class TestDatabaseCreation: DatabaseTest() {
 
         for (value in values) {
             db.executeSQL(
-                "INSERT INTO TestInt VALUES ($value)"
+                "INSERT INTO $tableName VALUES ($value)"
             )
         }
 
-        val stmt = db.executeSQL(
-            "SELECT * FROM TestInt"
-        )
-
-        val set = stmt.resultSet
-        var count = 0
-        while (set.next()) {
-            assertEquals(values[count], set.getInt(1))
-            count++
+        forEachTableRowIndexed(tableName) { set, index ->
+            assertEquals(true, index < values.size)
+            assertEquals(values[index], set.getInt(1))
         }
-        assertEquals(2, count)
 
-        val stmt2 = db.executeSQL(
-            "SELECT count(*) FROM TestInt"
+        val stmt = db.executeSQL(
+            "SELECT count(*) FROM $tableName"
         )
-
-        val set2 = stmt2.resultSet
-        assertEquals(2, set2.getInt(1))
+        val set = stmt.resultSet
+        assertEquals(values.size, set.getInt(1))
     }
 
 }
