@@ -30,4 +30,20 @@ class TestDatabaseInsertion : DatabaseTest() {
         val set = stmt.resultSet
         Assert.assertEquals(values.size, set.getInt(1))
     }
+
+    @Test
+    fun testDatabaseFieldOrderIsSortedAlphabetically() {
+        class TestFields(val b: Int, val a: Int, val c: Int)
+
+        val tableName = SQLSerializer.javaClassToTableName(TestFields::class.java)
+
+        db.createTable(TestFields::class.java)
+
+        val fieldNames = TestFields::class.java.declaredFields.sortedBy { it.name }
+
+        forEachTableRowIndexed(tableName) { set, index ->
+            Assert.assertEquals(true, index < fieldNames.size)
+            Assert.assertEquals(fieldNames[index], set.metaData.getColumnName(index))
+        }
+    }
 }
