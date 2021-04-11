@@ -2,7 +2,6 @@ package com.github.andersonarc.sqlgen.serialization.reflection
 
 import com.github.andersonarc.sqlgen.misc.toTitleCase
 import com.github.andersonarc.sqlgen.serialization.exception.NotDeserializableClassException
-import java.lang.reflect.Constructor
 import java.lang.reflect.Field
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
@@ -77,7 +76,7 @@ fun getFieldSetter(field: Field): Method? {
 
 fun <T> createClassInstance(clazz: Class<T>, args: List<FieldValueWrapper>): T {
     // parse class constructors and find those which can be used
-    val constructorFields = mutableMapOf<Constructor<*>, List<FieldValueWrapper>>()
+    /*val constructorFields = mutableMapOf<Constructor<*>, List<FieldValueWrapper>>()
     constructors@
     for (constructor in clazz.declaredConstructors) {
         // private constructors are not used
@@ -85,29 +84,24 @@ fun <T> createClassInstance(clazz: Class<T>, args: List<FieldValueWrapper>): T {
             continue
         }
         val currentFields = mutableListOf<FieldValueWrapper>()
-        for (parameter in constructor.parameters) {
+        for (parameter in constructor.parameterTypes) {
             // check if constructor has parameters that aren't in input list
             val field = args.firstOrNull {
-                it.field.name == parameter.name && parameter.type.isAssignableFrom(it.field.type)
+                parameter.isAssignableFrom(it.field.type)
             } ?: continue@constructors
 
             // if not, add it to the valid list
             currentFields.add(field)
         }
         constructorFields[constructor] = currentFields
-    }
+    }*/
 
-    // find a constructor with most initialized values and call it
-    val bestConstructor = constructorFields.entries.maxByOrNull { it.value.size }
+    val constructor = clazz.getConstructor()
         ?: throw NotDeserializableClassException(clazz)
-    val instance = bestConstructor.key.newInstance(bestConstructor.value.map { it.value }) as T
+    val instance = constructor.newInstance() as T
         ?: throw NotDeserializableClassException(clazz)
-
-    // leftover values initialized using setters
     for (field in args) {
-        if (!bestConstructor.value.contains(field)) {
-            field.assignValue(instance)
-        }
+        field.assignValue(instance)
     }
     return instance
 }
