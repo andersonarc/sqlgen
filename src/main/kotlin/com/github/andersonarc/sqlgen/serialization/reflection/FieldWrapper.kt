@@ -17,6 +17,8 @@ open class FieldWrapper(val field: Field) {
 
     fun canSet() = setValueImpl != null
 
+    fun canUse() = canGet() && canSet()
+
     fun getValue(instance: Any): Any? {
         if (!canGet()) {
             throw IllegalAccessException("Field '${field.name}' value cannot be accessed")

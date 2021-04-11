@@ -79,6 +79,6 @@ fun javaValueToSQLValue(value: Any?): String {
 fun getSerializableFields(clazz: Class<*>): List<FieldWrapper> {
     return clazz.declaredFields
         .map { FieldWrapper(it) }
-        .filter(FieldWrapper::canGet)
+        .filter(FieldWrapper::canUse)
         .sortedBy { it.field.name }
 }
