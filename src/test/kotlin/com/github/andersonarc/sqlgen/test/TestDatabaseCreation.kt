@@ -1,6 +1,6 @@
 package com.github.andersonarc.sqlgen.test
 
-import com.github.andersonarc.sqlgen.serialization.SQLSerializer
+import com.github.andersonarc.sqlgen.serialization.javaClassToTableName
 import org.junit.Assert.assertEquals
 import org.junit.Test
 
@@ -13,7 +13,7 @@ class TestDatabaseCreation: DatabaseTest() {
 
         val values = intArrayOf(1, 2)
 
-        val tableName = SQLSerializer.javaClassToTableName(TestInt::class.java)
+        val tableName = javaClassToTableName(TestInt::class.java)
 
         db.createTable(
             TestInt::class.java

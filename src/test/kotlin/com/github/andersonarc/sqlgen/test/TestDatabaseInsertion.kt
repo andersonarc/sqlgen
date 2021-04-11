@@ -1,6 +1,6 @@
 package com.github.andersonarc.sqlgen.test
 
-import com.github.andersonarc.sqlgen.serialization.SQLSerializer
+import com.github.andersonarc.sqlgen.serialization.javaClassToTableName
 import org.junit.Assert
 import org.junit.Test
 
@@ -11,7 +11,7 @@ class TestDatabaseInsertion : DatabaseTest() {
 
         val values = arrayOf(0, 2, 5)
 
-        val tableName = SQLSerializer.javaClassToTableName(TestInt::class.java)
+        val tableName = javaClassToTableName(TestInt::class.java)
 
         db.createTable(TestInt::class.java)
 
@@ -35,7 +35,7 @@ class TestDatabaseInsertion : DatabaseTest() {
     fun testDatabaseFieldOrderIsSortedAlphabetically() {
         class TestFields(val b: Int, val a: Int, val c: Int)
 
-        val tableName = SQLSerializer.javaClassToTableName(TestFields::class.java)
+        val tableName = javaClassToTableName(TestFields::class.java)
 
         db.createTable(TestFields::class.java)
 
