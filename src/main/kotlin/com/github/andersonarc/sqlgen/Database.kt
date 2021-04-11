@@ -49,19 +49,22 @@ class Database(url: String) {
 
     //todo class cache with fields
 
-    fun <T> selectAll(clazz: Class<T>): T {
+    fun <T> selectAll(clazz: Class<T>): List<T> {
         val sql = "SELECT * FROM " + javaClassToTableName(clazz)
         val result = executeSQL(sql).resultSet
 
         val fields = getSerializableFields(clazz)
         val args = mutableListOf<FieldValueWrapper>()
+        val list = mutableListOf<T>()
+
         while (result.next()) {
             for (field in fields) {
                 args.add(FieldValueWrapper(field.field, sqlValueToJavaValue(field.field, result)))
             }
+            list.add(createClassInstance(clazz, args))
         }
 
-        return createClassInstance(clazz, args)
+        return list
     }
 
     fun closeConnection() {
