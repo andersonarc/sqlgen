@@ -8,7 +8,7 @@ class TestDatabaseCreation: DatabaseTest() {
     @Test
     fun testCreateSingleIntTable() {
         class TestInt {
-            val x = 5
+            var x = 5
         }
 
         val values = intArrayOf(1, 2)
@@ -20,7 +20,7 @@ class TestDatabaseCreation: DatabaseTest() {
         )
 
         for (value in values) {
-            db.executeSQL(
+            db.executeSql(
                 "INSERT INTO $tableName VALUES ($value)"
             )
         }
@@ -30,7 +30,7 @@ class TestDatabaseCreation: DatabaseTest() {
             assertEquals(values[index], set.getInt(1))
         }
 
-        val stmt = db.executeSQL(
+        val stmt = db.executeSql(
             "SELECT count(*) FROM $tableName"
         )
         val set = stmt.resultSet

@@ -1,5 +1,7 @@
 package com.github.andersonarc.sqlgen.serialization.reflection
 
+import com.github.andersonarc.sqlgen.serialization.javaClassToSQLType
+import com.github.andersonarc.sqlgen.serialization.javaValueToSQLValue
 import java.lang.reflect.Field
 
 /**
@@ -12,6 +14,7 @@ import java.lang.reflect.Field
 open class FieldWrapper(val field: Field) {
     private val getValueImpl: FieldValueProvider? = getFieldValueProvider(field)
     private val setValueImpl: FieldValueChanger? = getFieldValueChanger(field)
+    val sqlType = javaClassToSQLType(field.type)
 
     fun canGet() = getValueImpl != null
 
@@ -25,6 +28,8 @@ open class FieldWrapper(val field: Field) {
         }
         return getValueImpl!!(instance)
     }
+
+    fun getSqlValue(instance: Any) = javaValueToSQLValue(getValue(instance))
 
     fun setValue(instance: Any, value: Any?) {
         if (!canSet()) {

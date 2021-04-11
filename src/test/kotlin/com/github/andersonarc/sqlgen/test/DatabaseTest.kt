@@ -29,7 +29,7 @@ abstract class DatabaseTest {
     }
 
     protected fun forEachTableRow(tableName: String, block: (ResultSet) -> Unit) {
-        val stmt = db.executeSQL(
+        val stmt = db.executeSql(
             "SELECT * FROM $tableName"
         )
         val set = stmt.resultSet
@@ -39,7 +39,7 @@ abstract class DatabaseTest {
     }
 
     protected fun forEachTableRowIndexed(tableName: String, block: (ResultSet, Int) -> Unit) {
-        val stmt = db.executeSQL(
+        val stmt = db.executeSql(
             "SELECT * FROM $tableName"
         )
         val set = stmt.resultSet

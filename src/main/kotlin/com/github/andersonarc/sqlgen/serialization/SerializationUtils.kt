@@ -66,10 +66,11 @@ fun javaValueToSQLValue(value: Any?): String {
         java.lang.Long::class.java, Long::class.java,
         java.lang.Float::class.java, Float::class.java,
         java.lang.Double::class.java, Double::class.java,
-        java.lang.String::class.java, String::class.java,
         ByteArray::class.java,
         CharArray::class.java
         -> value.toString()
+
+        java.lang.String::class.java, String::class.java -> "\"$value\""
 
         java.lang.Boolean::class.java, Boolean::class.java -> value.toString().toUpperCase()
         else -> throw NotSerializableValueException(value)

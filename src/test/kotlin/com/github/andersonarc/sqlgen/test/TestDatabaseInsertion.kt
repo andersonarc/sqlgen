@@ -7,7 +7,7 @@ import org.junit.Test
 class TestDatabaseInsertion : DatabaseTest() {
     @Test
     fun testInsertIntoSingleIntTable() {
-        class TestInt(val x: Int)
+        class TestInt(var x: Int)
 
         val values = arrayOf(0, 2, 5)
 
@@ -24,7 +24,31 @@ class TestDatabaseInsertion : DatabaseTest() {
             Assert.assertEquals(values[index], set.getInt(1))
         }
 
-        val stmt = db.executeSQL(
+        val stmt = db.executeSql(
+            "SELECT count(*) FROM $tableName"
+        )
+        val set = stmt.resultSet
+        Assert.assertEquals(values.size, set.getInt(1))
+    }
+
+    @Test
+    fun testInsertMultipleValuesIntoSingleIntTable() {
+        class TestInt(var x: Int)
+
+        val values = arrayOf(0, 2, 5)
+
+        val tableName = javaClassToTableName(TestInt::class.java)
+
+        db.createTable(TestInt::class.java)
+
+        db.insertValues(*values.map { TestInt(it) }.toTypedArray())
+
+        forEachTableRowIndexed(tableName) { set, index ->
+            Assert.assertEquals(true, index < values.size)
+            Assert.assertEquals(values[index], set.getInt(1))
+        }
+
+        val stmt = db.executeSql(
             "SELECT count(*) FROM $tableName"
         )
         val set = stmt.resultSet
@@ -33,7 +57,7 @@ class TestDatabaseInsertion : DatabaseTest() {
 
     @Test
     fun testDatabaseFieldOrderIsSortedAlphabetically() {
-        class TestFields(val b: Int, val a: Int, val c: Int)
+        class TestFields(var b: Int, var a: Int, var c: Int)
 
         val tableName = javaClassToTableName(TestFields::class.java)
 
