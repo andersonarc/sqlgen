@@ -20,7 +20,7 @@ class TestDatabaseCreation: DatabaseTest() {
         )
 
         for (value in values) {
-            db.executeSql(
+            db.executeUpdate(
                 "INSERT INTO $tableName VALUES ($value)"
             )
         }
@@ -30,11 +30,10 @@ class TestDatabaseCreation: DatabaseTest() {
             assertEquals(values[index], set.getInt(1))
         }
 
-        val stmt = db.executeSql(
+        val result = db.executeQuery(
             "SELECT count(*) FROM $tableName"
         )
-        val set = stmt.resultSet
-        assertEquals(values.size, set.getInt(1))
+        assertEquals(values.size, result.getInt(1))
     }
 
 }

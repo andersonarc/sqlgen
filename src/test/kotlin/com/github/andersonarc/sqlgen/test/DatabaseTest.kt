@@ -29,23 +29,21 @@ abstract class DatabaseTest {
     }
 
     protected fun forEachTableRow(tableName: String, block: (ResultSet) -> Unit) {
-        val stmt = db.executeSql(
+        val result = db.executeQuery(
             "SELECT * FROM $tableName"
         )
-        val set = stmt.resultSet
-        while (set.next()) {
-            block(set)
+        while (result.next()) {
+            block(result)
         }
     }
 
     protected fun forEachTableRowIndexed(tableName: String, block: (ResultSet, Int) -> Unit) {
-        val stmt = db.executeSql(
+        val result = db.executeQuery(
             "SELECT * FROM $tableName"
         )
-        val set = stmt.resultSet
         var index = 0
-        while (set.next()) {
-            block(set, index)
+        while (result.next()) {
+            block(result, index)
             index++
         }
     }

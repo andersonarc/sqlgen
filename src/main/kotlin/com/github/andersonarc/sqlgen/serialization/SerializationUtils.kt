@@ -5,6 +5,8 @@ import com.github.andersonarc.sqlgen.serialization.exception.NotSerializableClas
 import com.github.andersonarc.sqlgen.serialization.exception.NotSerializableValueException
 import com.github.andersonarc.sqlgen.serialization.reflection.FieldWrapper
 import java.lang.reflect.Field
+import java.sql.JDBCType
+import java.sql.PreparedStatement
 import java.sql.ResultSet
 import kotlin.math.abs
 
@@ -15,19 +17,19 @@ fun javaClassToTableName(clazz: Class<*>): String {
     return clazz.simpleName + "_" + abs(clazz.name.hashCode())
 }
 
-fun javaClassToSQLType(clazz: Class<*>): String {
+fun javaClassToSQLType(clazz: Class<*>): JDBCType {
     return when (clazz) {
-        java.lang.Byte::class.java, Byte::class.java -> "TINYINT"
-        java.lang.Character::class.java, Char::class.java -> "TINYINT"
-        java.lang.Short::class.java, Short::class.java -> "SMALLINT"
-        java.lang.Integer::class.java, Int::class.java -> "INTEGER"
-        java.lang.Long::class.java, Long::class.java -> "BIGINT"
-        java.lang.Float::class.java, Float::class.java -> "FLOAT"
-        java.lang.Double::class.java, Double::class.java -> "DOUBLE"
-        java.lang.Boolean::class.java, Boolean::class.java -> "BOOL"
-        java.lang.String::class.java, String::class.java -> "VARCHAR($DEFAULT_VARCHAR_LENGTH)"
-        CharArray::class.java -> "VARBINARY($DEFAULT_VARBINARY_SIZE)"
-        ByteArray::class.java -> "VARBINARY($DEFAULT_VARBINARY_SIZE)"
+        java.lang.Byte::class.java, Byte::class.java -> JDBCType.TINYINT
+        java.lang.Character::class.java, Char::class.java -> JDBCType.TINYINT
+        java.lang.Short::class.java, Short::class.java -> JDBCType.SMALLINT
+        java.lang.Integer::class.java, Int::class.java -> JDBCType.INTEGER
+        java.lang.Long::class.java, Long::class.java -> JDBCType.BIGINT
+        java.lang.Float::class.java, Float::class.java -> JDBCType.FLOAT
+        java.lang.Double::class.java, Double::class.java -> JDBCType.DOUBLE
+        java.lang.Boolean::class.java, Boolean::class.java -> JDBCType.BOOLEAN
+        java.lang.String::class.java, String::class.java -> JDBCType.VARCHAR
+        CharArray::class.java -> JDBCType.VARBINARY
+        ByteArray::class.java -> JDBCType.VARBINARY
         else -> throw NotSerializableClassException(clazz)
     }
 }
@@ -54,25 +56,23 @@ fun sqlValueToJavaValue(field: Field, result: ResultSet): Any? {
     }
 }
 
-fun javaValueToSQLValue(value: Any?): String {
+fun insertJavaValueIntoSQL(value: Any?, type: JDBCType, index: Int, statement: PreparedStatement) {
     if (value == null) {
-        return "NULL"
+        statement.setNull(index, type.vendorTypeNumber)
+        return
     }
-    return when (value.javaClass) {
-        java.lang.Byte::class.java, Byte::class.java,
-        java.lang.Character::class.java, Char::class.java,
-        java.lang.Short::class.java, Short::class.java,
-        java.lang.Integer::class.java, Int::class.java,
-        java.lang.Long::class.java, Long::class.java,
-        java.lang.Float::class.java, Float::class.java,
-        java.lang.Double::class.java, Double::class.java,
-        ByteArray::class.java,
-        CharArray::class.java
-        -> value.toString()
-
-        java.lang.String::class.java, String::class.java -> "\"$value\""
-
-        java.lang.Boolean::class.java, Boolean::class.java -> value.toString().toUpperCase()
+    when (value.javaClass) {
+        java.lang.Byte::class.java, Byte::class.java -> statement.setByte(index, value as Byte)
+        java.lang.Character::class.java, Char::class.java -> statement.setByte(index, (value as Char).toByte())
+        java.lang.Short::class.java, Short::class.java -> statement.setShort(index, value as Short)
+        java.lang.Integer::class.java, Int::class.java -> statement.setInt(index, value as Int)
+        java.lang.Long::class.java, Long::class.java -> statement.setLong(index, value as Long)
+        java.lang.Float::class.java, Float::class.java -> statement.setFloat(index, value as Float)
+        java.lang.Double::class.java, Double::class.java -> statement.setDouble(index, value as Double)
+        java.lang.Boolean::class.java, Boolean::class.java -> statement.setBoolean(index, value as Boolean)
+        java.lang.String::class.java, String::class.java -> statement.setString(index, value as String)
+        ByteArray::class.java -> statement.setBytes(index, value as ByteArray)
+        CharArray::class.java -> statement.setBytes(index, (value as CharArray).map(Char::toByte).toByteArray())
         else -> throw NotSerializableValueException(value)
     }
 }

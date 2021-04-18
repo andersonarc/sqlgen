@@ -1,45 +1,47 @@
 package com.github.andersonarc.sqlgen
 
 import com.github.andersonarc.sqlgen.serialization.getClassWrapper
-import com.github.andersonarc.sqlgen.serialization.getSerializableFields
-import com.github.andersonarc.sqlgen.serialization.javaClassToTableName
 import com.github.andersonarc.sqlgen.serialization.reflection.FieldValueWrapper
-import com.github.andersonarc.sqlgen.serialization.reflection.createClassInstance
 import com.github.andersonarc.sqlgen.serialization.sqlValueToJavaValue
 import java.sql.DriverManager
+import java.sql.PreparedStatement
 import java.sql.ResultSet
-import java.sql.Statement
 
 class Database(url: String) {
     private val connection = DriverManager.getConnection(url)
 
-    fun executeSql(sql: String): Statement {
+    fun executeQuery(sql: String): ResultSet {
         println(sql)
-        val statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
-        statement.execute(sql)
-        return statement
+        return connection.createStatement().executeQuery(sql)
     }
 
-    fun executeSqlMultiple(sql: List<String>): Statement {
+    fun executeUpdate(sql: String) {
         println(sql)
-        val statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)
-        for (value in sql) {
-            statement.execute(value)
-        }
-        return statement
+        connection.createStatement().executeUpdate(sql)
     }
 
-    //todo use SQL statements to prevent injections
+    fun executePreparedUpdate(statement: PreparedStatement) {
+        println(statement)
+        statement.executeUpdate()
+    }
+
+    fun executePreparedQuery(statement: PreparedStatement): ResultSet {
+        println(statement)
+        return statement.executeQuery()
+    }
+
+    fun prepareSQL(template: String): PreparedStatement {
+        println(template)
+        return connection.prepareStatement(template)
+    }
 
     fun createTable(clazz: Class<*>) {
         val wrapper = getClassWrapper(clazz)
         val sql = wrapper.fields.joinToString(
             ", ",
             "CREATE TABLE ${wrapper.tableName} (", ")"
-        ) {
-            it.field.name + ' ' + it.sqlType
-        }
-        executeSql(sql)
+        ) { it.field.name + " " + it.sqlType.toString() }
+        executeUpdate(sql)
     }
 
     fun insertValue(instance: Any) {
@@ -47,40 +49,41 @@ class Database(url: String) {
         val sql = wrapper.fields.joinToString(
             ", ",
             "INSERT INTO ${wrapper.tableName} VALUES (", ")"
-        ) {
-            it.getSqlValue(instance)
+        ) { "?" }
+        val stmt = prepareSQL(sql)
+        wrapper.fields.forEachIndexed { i, field ->
+            field.insertIntoStatement(instance, 1 + i, stmt)
         }
-        executeSql(sql)
+        executePreparedUpdate(stmt)
     }
 
     fun insertValues(vararg instances: Any) {
         val wrapper = getClassWrapper(instances.javaClass.componentType)
-        val sql = instances.map { instance ->
-            wrapper.fields.joinToString(
-                ", ",
-                "INSERT INTO ${wrapper.tableName} VALUES (", ")"
-            ) {
-                it.getSqlValue(instance)
+        val sql = wrapper.fields.joinToString(
+            ", ",
+            "INSERT INTO ${wrapper.tableName} VALUES (", ")"
+        ) { "?" }
+        val stmt = prepareSQL(sql)
+        for (instance in instances) {
+            wrapper.fields.forEachIndexed { i, field ->
+                field.insertIntoStatement(instance, 1 + i, stmt)
             }
+            executePreparedUpdate(stmt)
         }
-        executeSqlMultiple(sql)
     }
 
-    //todo class cache with fields
-
     fun <T> selectAll(clazz: Class<T>): List<T> {
-        val sql = "SELECT * FROM " + javaClassToTableName(clazz)
-        val result = executeSql(sql).resultSet
+        val wrapper = getClassWrapper(clazz)
+        val result = executeQuery("SELECT * FROM " + wrapper.tableName)
 
-        val fields = getSerializableFields(clazz)
         val args = mutableListOf<FieldValueWrapper>()
         val list = mutableListOf<T>()
 
         while (result.next()) {
-            for (field in fields) {
+            for (field in wrapper.fields) {
                 args.add(FieldValueWrapper(field.field, sqlValueToJavaValue(field.field, result)))
             }
-            list.add(createClassInstance(clazz, args))
+            list.add(wrapper.createInstance(args))
         }
 
         return list

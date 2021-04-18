@@ -24,11 +24,10 @@ class TestDatabaseInsertion : DatabaseTest() {
             Assert.assertEquals(values[index], set.getInt(1))
         }
 
-        val stmt = db.executeSql(
+        val result = db.executeQuery(
             "SELECT count(*) FROM $tableName"
         )
-        val set = stmt.resultSet
-        Assert.assertEquals(values.size, set.getInt(1))
+        Assert.assertEquals(values.size, result.getInt(1))
     }
 
     @Test
@@ -48,11 +47,10 @@ class TestDatabaseInsertion : DatabaseTest() {
             Assert.assertEquals(values[index], set.getInt(1))
         }
 
-        val stmt = db.executeSql(
+        val result = db.executeQuery(
             "SELECT count(*) FROM $tableName"
         )
-        val set = stmt.resultSet
-        Assert.assertEquals(values.size, set.getInt(1))
+        Assert.assertEquals(values.size, result.getInt(1))
     }
 
     @Test

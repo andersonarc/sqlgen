@@ -1,8 +1,9 @@
 package com.github.andersonarc.sqlgen.serialization.reflection
 
+import com.github.andersonarc.sqlgen.serialization.insertJavaValueIntoSQL
 import com.github.andersonarc.sqlgen.serialization.javaClassToSQLType
-import com.github.andersonarc.sqlgen.serialization.javaValueToSQLValue
 import java.lang.reflect.Field
+import java.sql.PreparedStatement
 
 /**
  * Finds methods to set/get field value, using:
@@ -29,7 +30,9 @@ open class FieldWrapper(val field: Field) {
         return getValueImpl!!(instance)
     }
 
-    fun getSqlValue(instance: Any) = javaValueToSQLValue(getValue(instance))
+    fun insertIntoStatement(instance: Any, index: Int, statement: PreparedStatement) {
+        insertJavaValueIntoSQL(getValue(instance), sqlType, index, statement)
+    }
 
     fun setValue(instance: Any, value: Any?) {
         if (!canSet()) {
