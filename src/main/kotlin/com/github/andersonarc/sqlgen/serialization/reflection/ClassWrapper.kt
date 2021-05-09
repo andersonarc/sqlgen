@@ -7,6 +7,10 @@ class ClassWrapper<T>(val clazz: Class<T>) {
     val fields = getSerializableFields(clazz)
     val tableName = javaClassToTableName(clazz)
 
+    fun getFieldByName(name: String): FieldWrapper? {
+        return fields.find { it.field.name == name }
+    }
+
     fun createInstance(args: List<FieldValueWrapper>): T {
         return createClassInstance(clazz, args)
     }

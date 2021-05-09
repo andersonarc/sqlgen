@@ -1,29 +1,36 @@
 package com.github.andersonarc.sqlgen.test.builder
 
+import com.github.andersonarc.sqlgen.builder.select.select
+import com.github.andersonarc.sqlgen.test.DatabaseTest
+import org.junit.Assert
 import org.junit.Test
 
 
-class SelectBuilder<T>(val clazz: Class<T>) {
-    fun execute(): List<T> {
-        TODO()
-    }
+/*
+class FieldBuilder<T> {}
 
-    fun where(expression: (WhereExpressionBuilder<Class<T>>) -> WhereExpressionBuilder<Class<T>>) {
-        val builder = WhereExpressionBuilder(clazz)
-        expression(builder)
-    }
+fun <A, B, T> select(clazz: Class<T>, func1: (FieldBuilder<T>) -> FieldBuilder<A>) {
+
 }
 
-class WhereExpressionBuilder<T: Class<*>>(val clazz: T) {
+class WhereExpressionBuilder<T>() {
     private val tokens = ArrayList<String>()
 
-    fun build(): String {
-        return tokens.joinToString(" ") { it }
+    fun tokens(): List<String> {
+        return this.tokens
     }
 
     operator fun get(field: String): WhereExpressionBuilder<T> {
         tokens.add(field)
         return this
+    }
+
+    override fun equals(other: Any?): Boolean {
+        throw Exception("Use infix functions 'eq' and 'ne'")
+    }
+
+    operator fun compareTo(other: Any?): Int {
+        throw Exception("Use infix functions 'eq', 'neq', 'ge', 'gte', 'le', 'lte'")
     }
 
     infix fun eq(other: WhereExpressionBuilder<T>): WhereExpressionBuilder<T> {
@@ -35,16 +42,90 @@ class WhereExpressionBuilder<T: Class<*>>(val clazz: T) {
         tokens.add("!=")
         return this
     }
-}
 
-class SelectFieldBuilder<T : Class<*>>(val clazz: T) {
-    operator fun get(s: String): SelectFieldBuilder<T> {
-        TODO()
+    infix fun gt(other: WhereExpressionBuilder<T>): WhereExpressionBuilder<T> {
+        tokens.add(">")
         return this
     }
 
-    operator fun plus(b: SelectFieldBuilder<Class<Any>>): SelectFieldBuilder<Class<Any>> {
-        TODO()
+    infix fun gte(other: WhereExpressionBuilder<T>): WhereExpressionBuilder<T> {
+        tokens.add(">=")
+        return this
+    }
+
+    infix fun lt(other: WhereExpressionBuilder<T>): WhereExpressionBuilder<T> {
+        tokens.add("<")
+        return this
+    }
+
+    infix fun lte(other: WhereExpressionBuilder<T>): WhereExpressionBuilder<T> {
+        tokens.add("<=")
+        return this
+    }
+}
+
+class SelectResultBuilder<T>(val parent: SelectConditionBuilder<T>) {
+    private var tokens = emptyList<String>()
+
+    fun tokens(): List<String> {
+        return tokens
+    }
+
+    fun build(): String {
+        return parent.build(this)
+    }
+}
+
+class SelectConditionBuilder<T>(private val parent: SelectBuilder<T>) {
+    private var tokens = emptyList<String>()
+
+    fun tokens(): List<String> {
+        return tokens
+    }
+
+    fun build(child: SelectResultBuilder<T>): String {
+        return parent.build(this, child)
+    }
+
+    fun where(expression: (WhereExpressionBuilder<T>) -> WhereExpressionBuilder<T>): SelectResultBuilder<T> {
+        tokens = expression(WhereExpressionBuilder()).tokens()
+        return SelectResultBuilder(this)
+    }
+}
+
+class SelectBuilder<T>(clazz: Class<T>) {
+    private val wrapper = getClassWrapper(clazz)
+
+    fun build(child: SelectConditionBuilder<T>, grandchild: SelectResultBuilder<T>): String {
+        val tokens = mutableListOf<String>().apply {
+            add("SELECT")
+            addAll(child.tokens())
+            add("FROM")
+            add(wrapper.tableName)
+            if (grandchild.)) {
+                add("WHERE")
+                addAll(whereTokens)
+            }
+        }
+        return tokens.joinToString(" ")
+    }
+
+    fun execute(database: Database): List<T> {
+        val result = database.executeQuery(build())
+        val args = mutableListOf<FieldValueWrapper>()
+        val list = mutableListOf<T>()
+        while (result.next()) {
+            for (field in wrapper.fields) {
+                args.add(FieldValueWrapper(field.field, sqlValueToJavaValue(field.field, result)))
+            }
+            list.add(wrapper.createInstance(args))
+        }
+        return list
+    }
+
+    fun all(): SelectConditionBuilder<T> {
+        targetTokens = listOf("*")
+        return SelectConditionBuilder(this)
     }
 }
 
@@ -52,20 +133,23 @@ fun <T> select(clazz: Class<T>): SelectBuilder<T> {
     return SelectBuilder(clazz)
 }
 
-fun <T> select(
-    clazz: Class<T>,
-    par1: (SelectFieldBuilder<Class<T>>) -> SelectFieldBuilder<Class<*>>): SelectBuilder<T> {
-
-    var b = SelectFieldBuilder(clazz)
-    par1(b)
-    return SelectBuilder(clazz)
-}
-
-
-class TestSelect {
+class TestSelect() : DatabaseTest() {
     class SampleInt {
         var value1 = 1
         var value2 = 2
+    }
+
+    private inline fun <reified T : Throwable> assertThrows(block: () -> Any) {
+        try {
+            block()
+        } catch (e: Throwable) {
+            if (!e::class.java.isAssignableFrom(T::class.java)) {
+                Assert.fail("Block threw unexpected exception: ${e::class.java.simpleName}, expected ${T::class.java.simpleName}")
+            } else {
+                return
+            }
+        }
+        Assert.fail("Block didn't throw an exception, expected ${T::class.java.simpleName}")
     }
 
     @Test
@@ -76,37 +160,42 @@ class TestSelect {
     }
 
     @Test
-    fun testWhereGreaterThan() {
-        val res =
-            select(SampleInt::class.java)
-            .where(
-                { it["value1"] > it["value2"] }
-            )
-            .execute()
+    fun testSelectFiled1() {
+        select<SampleInt>()
+            .field<Int> { it["value1"] + it["value2"] }
+            .build()
     }
 
     @Test
-    fun testWhereGreaterThan() {
-        val res =
-            select(SampleInt::class.java)
-                .where(
-                    { it["value1"] gt it["value2"] }
-                )
-                .execute()
+    fun testSelectWrongField() {
+        assertThrows<IllegalArgumentException> {
+            select<SampleInt>()
+                .field<Int> { it["unknown"] + it["value2"] }
+                .build()
+        }
     }
 
     @Test
-    fun testWhereLessThan() {
+    fun testSelectFiled2() {
+        select<SampleInt>()
+            .field<Int> { it["value1"] + it["value2"] }
+            .field<Int> { it["value1"] * it["value2"] }
+            .build()
+    }
+
+
+    /*
+
+    @Test
+    fun testWhereGreaterThanInfix() {
         val res =
             select(SampleInt::class.java)
-            .where(
-                { it["value1"] < it["value2"] }
-            )
-            .execute()
+                .where { it["value1"] gt it["value2"] }
+                .execute(db)
     }
 
     @Test
-    fun testWhereLessThan() {
+    fun testWhereLessThanInfix() {
         val res =
             select(SampleInt::class.java)
                 .where(
@@ -116,17 +205,7 @@ class TestSelect {
     }
 
     @Test
-    fun testWhereGreaterThanOrEqual() {
-        val res =
-            select(SampleInt::class.java)
-            .where(
-                { it["value1"] >= it["value2"] }
-            )
-            .execute()
-    }
-
-    @Test
-    fun testWhereGreaterThanOrEqual() {
+    fun testWhereGreaterThanOrEqualInfix() {
         val res =
             select(SampleInt::class.java)
                 .where(
@@ -136,17 +215,7 @@ class TestSelect {
     }
 
     @Test
-    fun testWhereLessThanOrEqual() {
-        val res =
-            select(SampleInt::class.java)
-            .where(
-                { it["value1"] <= it["value2"] }
-            )
-            .execute()
-    }
-
-    @Test
-    fun testWhereLessThanOrEqual() {
+    fun testWhereLessThanOrEqualInfix() {
         val res =
             select(SampleInt::class.java)
                 .where(
@@ -175,16 +244,5 @@ class TestSelect {
                 .execute()
     }
 
-//    @Test
-//    fun test() {
-//        select(SampleInt::class.java,
-//             { it["value1"] + it["value2"] }
-//            )
-//            .execute()
-//    }
-
-
-
-
-
+    */
 }

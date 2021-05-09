@@ -15,6 +15,7 @@ import java.sql.PreparedStatement
 open class FieldWrapper(val field: Field) {
     private val getValueImpl: FieldValueProvider? = getFieldValueProvider(field)
     private val setValueImpl: FieldValueChanger? = getFieldValueChanger(field)
+    val name = field.name
     val sqlType = javaClassToSQLType(field.type)
 
     fun canGet() = getValueImpl != null
@@ -22,6 +23,11 @@ open class FieldWrapper(val field: Field) {
     fun canSet() = setValueImpl != null
 
     fun canUse() = canGet() && canSet()
+
+    fun canPlusWith(other: FieldWrapper): Boolean {
+        //todo
+        return true
+    }
 
     fun getValue(instance: Any): Any? {
         if (!canGet()) {

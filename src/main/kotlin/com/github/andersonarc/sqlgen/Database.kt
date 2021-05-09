@@ -21,12 +21,10 @@ class Database(url: String) {
     }
 
     fun executePreparedUpdate(statement: PreparedStatement) {
-        println(statement)
         statement.executeUpdate()
     }
 
     fun executePreparedQuery(statement: PreparedStatement): ResultSet {
-        println(statement)
         return statement.executeQuery()
     }
 
