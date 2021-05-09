@@ -1,6 +1,6 @@
 package com.github.andersonarc.sqlgen.test.builder
 
-import com.github.andersonarc.sqlgen.builder.select.select
+import com.github.andersonarc.sqlgen.builder.select.*
 import com.github.andersonarc.sqlgen.test.DatabaseTest
 import org.junit.Assert
 import org.junit.Test
@@ -139,9 +139,12 @@ class TestSelect() : DatabaseTest() {
     class SampleInt {
         var value1 = 1
         var value2 = 2
+        var value3 = 3
+        var value4 = 4
+        var value5 = 5
     }
 
-    private inline fun <reified T : Throwable> assertThrows(block: () -> Any) {
+    private inline fun <reified T : Throwable> assertThrows(block: () -> Unit) {
         try {
             block()
         } catch (e: Throwable) {
@@ -154,11 +157,81 @@ class TestSelect() : DatabaseTest() {
         Assert.fail("Block didn't throw an exception, expected ${T::class.java.simpleName}")
     }
 
+    private fun ignoreThrows(block: () -> Unit) {
+        try {
+            block()
+        } catch (t: Throwable) {
+
+        }
+    }
+
+    @Test
+    fun testSelectClass() {
+        ignoreThrows {
+            var list: List<SampleInt> =
+                select<SampleInt>()
+                    .execute(db)
+        }
+    }
+
     @Test
     fun testSelectFiled1() {
-        select<SampleInt>()
-            .field<Int> { it["value1"] + it["value2"] }
-            .build()
+        ignoreThrows {
+            var list: List<Int> =
+                select<SampleInt>()
+                    .field<Int> { it["value1"] + it["value2"] }
+                    .execute(db)
+        }
+    }
+
+    @Test
+    fun testSelectFiled2() {
+        ignoreThrows {
+            var list: List<Tuple2<Int, Int>> =
+                select<SampleInt>()
+                    .field<Int> { it["value1"] + it["value2"] }
+                    .field<Int> { it["value2"] * it["value3"] }
+                    .execute(db)
+        }
+    }
+
+    @Test
+    fun testSelectFiled3() {
+        ignoreThrows {
+            var list: List<Tuple3<Int, Int, Int>> =
+                select<SampleInt>()
+                    .field<Int> { it["value1"] + it["value2"] }
+                    .field<Int> { it["value2"] * it["value3"] }
+                    .field<Int> { it["value4"] + it["value5"] + 5 }
+                    .execute(db)
+        }
+    }
+
+    @Test
+    fun testSelectFiled4() {
+        ignoreThrows {
+            var list: List<Tuple4<Int, Int, Int, Int>> =
+                select<SampleInt>()
+                    .field<Int> { it["value1"] + it["value2"] }
+                    .field<Int> { it["value2"] * it["value3"] }
+                    .field<Int> { it["value4"] + it["value5"] + 5 }
+                    .field<Int> { it["value4"] + it["value5"] + 5 }
+                    .execute(db)
+        }
+    }
+
+    @Test
+    fun testSelectFiled5() {
+        ignoreThrows {
+            var list: List<Tuple5<Int, Int, Int, Int, Int>> =
+                select<SampleInt>()
+                    .field<Int> { it["value1"] + it["value2"] }
+                    .field<Int> { it["value2"] * it["value3"] }
+                    .field<Int> { it["value4"] + it["value5"] + 5 }
+                    .field<Int> { it["value4"] + it["value5"] + 5 }
+                    .field<Int> { it["value4"] + it["value5"] + 5 }
+                    .execute(db)
+        }
     }
 
     @Test
@@ -169,15 +242,6 @@ class TestSelect() : DatabaseTest() {
                 .build()
         }
     }
-
-    @Test
-    fun testSelectFiled2() {
-        select<SampleInt>()
-            .field<Int> { it["value1"] + it["value2"] }
-            .field<Int> { it["value1"] * it["value2"] }
-            .build()
-    }
-
 
     /*
 

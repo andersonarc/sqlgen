@@ -20,7 +20,7 @@ abstract class BaseSelectBuilder<T> {
 open class SelectBuilderClass<T>(val clazz: Class<T>)
     : BaseSelectBuilder<T>() {
 
-    inline fun <reified A> field(block: (FieldBuilder<T>) -> ValueBuilder): SelectBuilderTuple1<T, Tuple1<A>> {
+    inline fun <reified A> field(block: (FieldBuilder<T>) -> ValueBuilder): SelectBuilderTuple1<T, A> {
         fields.add(block(FieldBuilder(clazz)))
         return SelectBuilderTuple1(clazz, fields)
     }
@@ -28,7 +28,7 @@ open class SelectBuilderClass<T>(val clazz: Class<T>)
 
 
 class SelectBuilderTuple1<T, A>(val clazz: Class<T>, fields: ArrayList<ValueBuilder>)
-    : BaseSelectBuilder<Tuple1<A>>() {
+    : BaseSelectBuilder<A>() {
 
     init {
         this.fields = fields
