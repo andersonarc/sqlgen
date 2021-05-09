@@ -189,8 +189,8 @@ class TestSelect() : DatabaseTest() {
         ignoreThrows {
             var list: List<Tuple2<Int, Int>> =
                 select<SampleInt>()
-                    .field<Int> { it["value1"] + it["value2"] }
-                    .field<Int> { it["value2"] * it["value3"] }
+                    .field<Int>("column1") { it["value1"] + it["value2"] }
+                    .field<Int>("column1") { it["value2"] * it["value3"] }
                     .execute(db)
         }
     }
@@ -230,6 +230,17 @@ class TestSelect() : DatabaseTest() {
                     .field<Int> { it["value4"] + it["value5"] + 5 }
                     .field<Int> { it["value4"] + it["value5"] + 5 }
                     .field<Int> { it["value4"] + it["value5"] + 5 }
+                    .execute(db)
+        }
+    }
+
+    @Test
+    fun testSelectFiled2WithColumnNames() {
+        ignoreThrows {
+            var list: List<Tuple2<Int, Int>> =
+                select<SampleInt>()
+                    .field<Int>("column1") { it["value1"] + it["value2"] }
+                    .field<Int>("column2") { it["value2"] * it["value3"] }
                     .execute(db)
         }
     }
@@ -304,4 +315,14 @@ class TestSelect() : DatabaseTest() {
     }
 
     */
+}
+
+
+fun main() {
+    print(
+        select<TestSelect.SampleInt>()
+            .field<Int>("column1") { it["value1"] + it["value2"] }
+            .field<Int>("column2") { it["value2"] * it["value3"] }
+            .build()
+    )
 }
