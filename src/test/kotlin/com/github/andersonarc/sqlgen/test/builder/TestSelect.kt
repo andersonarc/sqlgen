@@ -133,6 +133,8 @@ fun <T> select(clazz: Class<T>): SelectBuilder<T> {
     return SelectBuilder(clazz)
 }
 
+*/
+
 class TestSelect() : DatabaseTest() {
     class SampleInt {
         var value1 = 1
@@ -150,13 +152,6 @@ class TestSelect() : DatabaseTest() {
             }
         }
         Assert.fail("Block didn't throw an exception, expected ${T::class.java.simpleName}")
-    }
-
-    @Test
-    fun testSelect() {
-        val res: List<SampleInt> =
-            select(SampleInt::class.java)
-            .execute()
     }
 
     @Test
