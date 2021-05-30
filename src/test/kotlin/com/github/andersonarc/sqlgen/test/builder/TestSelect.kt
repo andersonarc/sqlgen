@@ -5,137 +5,7 @@ import com.github.andersonarc.sqlgen.test.DatabaseTest
 import org.junit.Assert
 import org.junit.Test
 
-
-/*
-class FieldBuilder<T> {}
-
-fun <A, B, T> select(clazz: Class<T>, func1: (FieldBuilder<T>) -> FieldBuilder<A>) {
-
-}
-
-class WhereExpressionBuilder<T>() {
-    private val tokens = ArrayList<String>()
-
-    fun tokens(): List<String> {
-        return this.tokens
-    }
-
-    operator fun get(field: String): WhereExpressionBuilder<T> {
-        tokens.add(field)
-        return this
-    }
-
-    override fun equals(other: Any?): Boolean {
-        throw Exception("Use infix functions 'eq' and 'ne'")
-    }
-
-    operator fun compareTo(other: Any?): Int {
-        throw Exception("Use infix functions 'eq', 'neq', 'ge', 'gte', 'le', 'lte'")
-    }
-
-    infix fun eq(other: WhereExpressionBuilder<T>): WhereExpressionBuilder<T> {
-        tokens.add("==")
-        return this
-    }
-
-    infix fun neq(other: WhereExpressionBuilder<T>): WhereExpressionBuilder<T> {
-        tokens.add("!=")
-        return this
-    }
-
-    infix fun gt(other: WhereExpressionBuilder<T>): WhereExpressionBuilder<T> {
-        tokens.add(">")
-        return this
-    }
-
-    infix fun gte(other: WhereExpressionBuilder<T>): WhereExpressionBuilder<T> {
-        tokens.add(">=")
-        return this
-    }
-
-    infix fun lt(other: WhereExpressionBuilder<T>): WhereExpressionBuilder<T> {
-        tokens.add("<")
-        return this
-    }
-
-    infix fun lte(other: WhereExpressionBuilder<T>): WhereExpressionBuilder<T> {
-        tokens.add("<=")
-        return this
-    }
-}
-
-class SelectResultBuilder<T>(val parent: SelectConditionBuilder<T>) {
-    private var tokens = emptyList<String>()
-
-    fun tokens(): List<String> {
-        return tokens
-    }
-
-    fun build(): String {
-        return parent.build(this)
-    }
-}
-
-class SelectConditionBuilder<T>(private val parent: SelectBuilder<T>) {
-    private var tokens = emptyList<String>()
-
-    fun tokens(): List<String> {
-        return tokens
-    }
-
-    fun build(child: SelectResultBuilder<T>): String {
-        return parent.build(this, child)
-    }
-
-    fun where(expression: (WhereExpressionBuilder<T>) -> WhereExpressionBuilder<T>): SelectResultBuilder<T> {
-        tokens = expression(WhereExpressionBuilder()).tokens()
-        return SelectResultBuilder(this)
-    }
-}
-
-class SelectBuilder<T>(clazz: Class<T>) {
-    private val wrapper = getClassWrapper(clazz)
-
-    fun build(child: SelectConditionBuilder<T>, grandchild: SelectResultBuilder<T>): String {
-        val tokens = mutableListOf<String>().apply {
-            add("SELECT")
-            addAll(child.tokens())
-            add("FROM")
-            add(wrapper.tableName)
-            if (grandchild.)) {
-                add("WHERE")
-                addAll(whereTokens)
-            }
-        }
-        return tokens.joinToString(" ")
-    }
-
-    fun execute(database: Database): List<T> {
-        val result = database.executeQuery(build())
-        val args = mutableListOf<FieldValueWrapper>()
-        val list = mutableListOf<T>()
-        while (result.next()) {
-            for (field in wrapper.fields) {
-                args.add(FieldValueWrapper(field.field, sqlValueToJavaValue(field.field, result)))
-            }
-            list.add(wrapper.createInstance(args))
-        }
-        return list
-    }
-
-    fun all(): SelectConditionBuilder<T> {
-        targetTokens = listOf("*")
-        return SelectConditionBuilder(this)
-    }
-}
-
-fun <T> select(clazz: Class<T>): SelectBuilder<T> {
-    return SelectBuilder(clazz)
-}
-
-*/
-
-class TestSelect() : DatabaseTest() {
+class TestSelect : DatabaseTest() {
     class SampleInt {
         var value1 = 1
         var value2 = 2
@@ -175,7 +45,7 @@ class TestSelect() : DatabaseTest() {
     }
 
     @Test
-    fun testSelectFiled1() {
+    fun testSelectField1() {
         ignoreThrows {
             var list: List<Int> =
                 select<SampleInt>()
@@ -185,7 +55,7 @@ class TestSelect() : DatabaseTest() {
     }
 
     @Test
-    fun testSelectFiled2() {
+    fun testSelectField2() {
         ignoreThrows {
             var list: List<Tuple2<Int, Int>> =
                 select<SampleInt>()
@@ -196,7 +66,7 @@ class TestSelect() : DatabaseTest() {
     }
 
     @Test
-    fun testSelectFiled3() {
+    fun testSelectField3() {
         ignoreThrows {
             var list: List<Tuple3<Int, Int, Int>> =
                 select<SampleInt>()
@@ -208,7 +78,7 @@ class TestSelect() : DatabaseTest() {
     }
 
     @Test
-    fun testSelectFiled4() {
+    fun testSelectField4() {
         ignoreThrows {
             var list: List<Tuple4<Int, Int, Int, Int>> =
                 select<SampleInt>()
@@ -235,7 +105,7 @@ class TestSelect() : DatabaseTest() {
     }
 
     @Test
-    fun testSelectFiled2WithColumnNames() {
+    fun testSelectField2WithColumnNames() {
         ignoreThrows {
             var list: List<Tuple2<Int, Int>> =
                 select<SampleInt>()
@@ -315,14 +185,4 @@ class TestSelect() : DatabaseTest() {
     }
 
     */
-}
-
-
-fun main() {
-    print(
-        select<TestSelect.SampleInt>()
-            .field<Int>("column1") { it["value1"] + it["value2"] }
-            .field<Int>("column2") { it["value2"] * it["value3"] }
-            .build()
-    )
 }
